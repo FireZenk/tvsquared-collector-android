@@ -55,8 +55,24 @@ public class TVSquaredCollector {
         this.track(null, null, null, 0, null);
     }
 
-    public void track(String actionname, String product, String promocode, float revenue, String orderid) {
-        new Thread(new AsyncTrack(this, actionname, product, promocode, revenue, orderid)).start();
+    public void track(String actionname, String product, String orderid, float revenue, String promocode) {
+        try {
+            Uri.Builder builder = new Uri.Builder();
+            builder.scheme(this.secure ? "https" : "http")
+                    .authority(this.hostname)
+                    .path("/piwik/piwik.php")
+                    .appendQueryParameter("idsite", String.valueOf(this.siteid))
+                    .appendQueryParameter("rec", "1")
+                    .appendQueryParameter("rand", "" + String.valueOf(random.nextInt()))
+                    .appendQueryParameter("_id", this.visitorid);
+            this.appendSessionDetails(builder);
+            if ((actionname != null) && (actionname.trim().length() > 0))
+                this.appendActionDetails(builder, actionname, product, orderid, revenue, promocode);
+
+            new Thread(new AsyncTrack(this.proxy, builder.build().toString())).start();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     private String getVisitorId(Activity activity)
@@ -91,13 +107,16 @@ public class TVSquaredCollector {
     }
 
     private void appendActionDetails(Uri.Builder builder, String actionname,
-                                     String product, String promocode, float revenue, String orderid)
+                                     String product, String orderid, float revenue, String promocode)
                                              throws JSONException {
         JSONObject v5 = new JSONObject();
-        v5.put("prod", product);
-        v5.put("promo", promocode);
+        if (product != null)
+            v5.put("prod", product);
+        if (orderid != null)
+            v5.put("id", orderid);
         v5.put("rev", revenue);
-        v5.put("id", orderid);
+        if (promocode != null)
+            v5.put("promo", promocode);
 
         JSONArray custom5 = new JSONArray();
         custom5.put(actionname);
@@ -146,40 +165,20 @@ public class TVSquaredCollector {
     }
 
     class AsyncTrack implements Runnable {
-        private TVSquaredCollector tracker;
-        private String actionname;
-        private String product;
-        private String promocode;
-        private float revenue;
-        private String orderid;
+        private String url;
+        private HttpHost proxy;
 
-        public AsyncTrack(TVSquaredCollector tracker, String actionname, String product, String orderid, float revenue, String promocode) {
-            this.tracker = tracker;
-            this.actionname = actionname;
-            this.product = product;
-            this.promocode = promocode;
-            this.revenue = revenue;
-            this.orderid = orderid;
+        public AsyncTrack(HttpHost proxy, String url) {
+            this.proxy = proxy;
+            this.url = url;
         }
 
         public void run() {
             try {
-                Uri.Builder builder = new Uri.Builder();
-                builder.scheme(this.tracker.secure ? "https" : "http")
-                        .authority(this.tracker.hostname)
-                        .path("/piwik/piwik.php")
-                        .appendQueryParameter("idsite", String.valueOf(this.tracker.siteid))
-                        .appendQueryParameter("rec", "1")
-                        .appendQueryParameter("rand", "" + String.valueOf(random.nextInt()))
-                        .appendQueryParameter("_id", this.tracker.visitorid);
-                this.tracker.appendSessionDetails(builder);
-                if ((actionname != null) && (actionname.trim().length() > 0))
-                    this.tracker.appendActionDetails(builder, actionname, product, promocode, revenue, orderid);
-
                HttpClient client = new DefaultHttpClient();
-               if (this.tracker.proxy != null)
-                   client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, this.tracker.proxy);
-               HttpGet request = new HttpGet(builder.build().toString());
+               if (this.proxy != null)
+                   client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, this.proxy);
+               HttpGet request = new HttpGet(this.url);
                request.setHeader("User-Agent", "TVSquared Android Collector Client 1.0");
 
                HttpResponse resp = client.execute(request);

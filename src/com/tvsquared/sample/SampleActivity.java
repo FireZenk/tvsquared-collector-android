@@ -20,9 +20,6 @@ public class SampleActivity extends Activity {
     private EditText txt_revenue;
     private EditText txt_promocode;
 
-    private static final String HOSTNAME = "<COLLECTORHOSTNAME>";
-    private static final String SITEID = "<COLLECTORSITEID>";
-
     public SampleActivity() {
     }
 
@@ -31,7 +28,7 @@ public class SampleActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         try {
-            this.tracker = new TVSquaredCollector(this, HOSTNAME, SITEID);
+            this.tracker = new TVSquaredCollector(this, "<COLLECTORHOSTNAME>", "<COLLECTORSITEID>");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
