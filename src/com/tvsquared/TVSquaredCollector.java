@@ -186,13 +186,9 @@ public class TVSquaredCollector {
 
                HttpResponse resp = client.execute(request);
                if (resp.getStatusLine().getStatusCode() != 200)
-                   throw new RuntimeException("Failed to track request: " + resp.getStatusLine().toString());
-            } catch (JSONException ex) {
-                throw new RuntimeException(ex.toString(), ex);
-            } catch (ClientProtocolException ex) {
-                throw new RuntimeException(ex.toString(), ex);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex.toString(), ex);
+                   System.err.println("Failed to track request: " + resp.getStatusLine().toString());
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
         }
     }
