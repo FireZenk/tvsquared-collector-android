@@ -57,7 +57,11 @@ public class SampleActivity extends Activity {
     public void trackAction(View view) {
         if (this.tracker != null) {
             this.tracker.setUserId(txt_userid.getText().toString());
-            this.tracker.track(txt_actionname.getText().toString(), txt_product.getText().toString(), txt_orderid.getText().toString(), Float.parseFloat(txt_revenue.getText().toString()), txt_promocode.getText().toString());
+            this.tracker.track(txt_actionname.getText().toString(),
+                                txt_product.getText().toString(),
+                                txt_orderid.getText().toString(),
+                                Float.parseFloat(txt_revenue.getText().toString()),
+                                txt_promocode.getText().toString());
         }
     }
 }
