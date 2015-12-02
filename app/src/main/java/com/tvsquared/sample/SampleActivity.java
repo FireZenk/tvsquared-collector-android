@@ -28,7 +28,7 @@ public class SampleActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         try {
-            this.tracker = new TVSquaredCollector(this, "collector.tvsquared.com", "1");
+            this.tracker = new TVSquaredCollector(this, "<COLLECTORHOSTNAME>", "<COLLECTORSITEID>");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
