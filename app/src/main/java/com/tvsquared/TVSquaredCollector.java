@@ -187,7 +187,7 @@ public class TVSquaredCollector {
                 }
                 con.setRequestProperty("User-Agent", "TVSquared Android Collector Client 1.0");
                 if (con.getResponseCode() != 200)
-                   System.err.println("Failed to track request: " + con.getResponseMessage().toString());
+                   System.err.println("Failed to track request: " + con.getResponseMessage());
             } catch (Throwable t) {
                 t.printStackTrace();
             }
