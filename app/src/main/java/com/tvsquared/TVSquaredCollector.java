@@ -15,7 +15,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -33,17 +32,40 @@ public class TVSquaredCollector {
     private static final boolean IS_ICS_OR_LATER = Build.VERSION.SDK_INT >= 14; /*Build.VERSION_CODES.ICE_CREAM_SANDWICH; */
     private Proxy proxy = null;
 
-    public TVSquaredCollector(Activity activity, String hostname, String siteid) throws NoSuchAlgorithmException {
-        this(activity, hostname, siteid, false);
+    private static TVSquaredCollector INSTANCE = null;
+
+    private TVSquaredCollector() {}
+
+    private static void createInstance() {
+        if (INSTANCE == null) {
+            synchronized(TVSquaredCollector.class) {
+                if (INSTANCE == null) {
+                    INSTANCE = new TVSquaredCollector();
+                }
+            }
+        }
     }
 
-    public TVSquaredCollector(Activity activity, String hostname, String siteid, boolean secure) throws NoSuchAlgorithmException {
+    public static TVSquaredCollector getInstance() {
+        if (INSTANCE == null) createInstance();
+        return INSTANCE;
+    }
+
+    @Override protected Object clone() throws CloneNotSupportedException {
+        throw new CloneNotSupportedException();
+    }
+
+    public void init(Context context, String hostname, String siteid) {
+        init(context, hostname, siteid, false);
+    }
+
+    public void init(Context context, String hostname, String siteid, boolean secure) {
         this.hostname = hostname;
         this.siteid = siteid;
         this.secure = secure;
 
-        this.visitorid = this.getVisitorId(activity);
-        this.proxy = this.getProxy(activity);
+        this.visitorid = this.getVisitorId(context);
+        this.proxy = this.getProxy(context);
     }
 
     public void setUserId(String userId) {
@@ -74,14 +96,18 @@ public class TVSquaredCollector {
         }
     }
 
-    private String getVisitorId(Activity activity)
-            throws NoSuchAlgorithmException {
+    private String getVisitorId(Context context) {
         String prefname = "visitor" + this.siteid;
 
-        SharedPreferences settings = activity.getSharedPreferences("TVSquaredTracker", 0);
+        SharedPreferences settings = context.getSharedPreferences("TVSquaredTracker", 0);
         String visitor = settings.getString(prefname, null);
         if (visitor == null) {
-            visitor = this.md5(UUID.randomUUID().toString()).substring(0, 16);
+            try {
+                visitor = this.md5(UUID.randomUUID().toString()).substring(0, 16);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+                visitor = "";
+            }
             settings.edit().putString(prefname, visitor).commit();
         }
         return visitor;
@@ -107,7 +133,7 @@ public class TVSquaredCollector {
 
     private void appendActionDetails(Uri.Builder builder, String actionname,
                                      String product, String orderid, float revenue, String promocode)
-                                             throws JSONException {
+            throws JSONException {
         JSONObject v5 = new JSONObject();
         if (product != null)
             v5.put("prod", product);
@@ -187,7 +213,7 @@ public class TVSquaredCollector {
                 }
                 con.setRequestProperty("User-Agent", "TVSquared Android Collector Client 1.0");
                 if (con.getResponseCode() != 200)
-                   System.err.println("Failed to track request: " + con.getResponseMessage());
+                    System.err.println("Failed to track request: " + con.getResponseMessage());
             } catch (Throwable t) {
                 t.printStackTrace();
             }
