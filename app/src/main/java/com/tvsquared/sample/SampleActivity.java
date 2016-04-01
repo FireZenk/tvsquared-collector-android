@@ -27,11 +27,7 @@ public class SampleActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        try {
-            this.tracker = new TVSquaredCollector(this, "<COLLECTORHOSTNAME>", "<COLLECTORSITEID>");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
+        TVSquaredCollector.getInstance().init(this, "<COLLECTORHOSTNAME>", "<COLLECTORSITEID>");
 
         setContentView(R.layout.sample);
         txt_userid = (EditText)findViewById(R.id.txt_userid);
@@ -43,25 +39,20 @@ public class SampleActivity extends Activity {
     }
 
     public void trackSimple(View view) {
-        if (this.tracker != null)
-            this.tracker.track();
+        TVSquaredCollector.getInstance().track();
     }
 
     public void trackUser(View view) {
-        if (this.tracker != null) {
-            this.tracker.setUserId(txt_userid.getText().toString());
-            this.tracker.track();
-        }
+        TVSquaredCollector.getInstance().setUserId(txt_userid.getText().toString());
+        TVSquaredCollector.getInstance().track();
     }
 
     public void trackAction(View view) {
-        if (this.tracker != null) {
-            this.tracker.setUserId(txt_userid.getText().toString());
-            this.tracker.track(txt_actionname.getText().toString(),
-                                txt_product.getText().toString(),
-                                txt_orderid.getText().toString(),
-                                Float.parseFloat(txt_revenue.getText().toString()),
-                                txt_promocode.getText().toString());
-        }
+        TVSquaredCollector.getInstance().setUserId(txt_userid.getText().toString());
+        TVSquaredCollector.getInstance().track(txt_actionname.getText().toString(),
+                            txt_product.getText().toString(),
+                            txt_orderid.getText().toString(),
+                            Float.parseFloat(txt_revenue.getText().toString()),
+                            txt_promocode.getText().toString());
     }
 }
